@@ -34,7 +34,7 @@ function createPrompt(context: string, request: string, response: string): strin
     const annotated_context_sentences = annotate(context_sentences, "s");
     const annotated_context = `<|context|>${annotated_context_sentences}<end||context>`;
 
-    const annotated_request = `<|request|>${request.trim()}<end||request>`;
+    const annotated_request = `<|request|><${request.trim()}><end||request>`;
 
     const response_sentences = splitIntoSentences(response);
     const annotated_response_sentences = annotate(response_sentences, "r");
