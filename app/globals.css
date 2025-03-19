@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'InriaSans';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  src: url(/fonts/InriaSans-Regular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  src: url(/fonts/Orbitron-VariableFont_wght.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'CrimsonPro';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  src: url(/fonts/CrimsonPro-Regular.ttf) format('truetype');
+}
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+  --sh-class: #2d5e9d;
+  --sh-identifier: #354150;
+  --sh-sign: #8996a3;
+  --sh-property: #0550ae;
+  --sh-entity: #249a97;
+  --sh-jsxliterals: #6266d1;
+  --sh-string: #00a99a;
+  --sh-keyword: #f47067;
+  --sh-comment: #a19595;
+}
+body {
+  color: #000;
+  background: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 255, 255, 255;
+    --background-end-rgb: 255, 255, 255;
+  }
+  body {
+    color: #000;
+    background: #fff;
+  }
+  mark {
+    @apply inline pr-1 pl-1 py-0;
+    margin-top: 0.15rem;
+    margin-bottom: 0.15rem;
+  }
+  .mark-rounded {
+      @apply rounded-sm shadow-md;
+  }
+}
+
+
+
+@layer utilities {
+  .body-shadow {
+    @apply drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)];
+  }
+  .bordered-svg {
+    stroke-width: 30;
+  }
+  .hero-standalone{
+    @apply text-[28px] tracking-wide sm:text-[45px] md:text-[60px] lg:text-[80px] xl:text-[96px] 2xl:text-[110px] font-orbitron;
+  }
+  .hero-overlay {
+    @apply absolute z-10 text-[28px] tracking-wide sm:text-[45px] md:text-[60px] lg:text-[80px] xl:text-[96px] 2xl:text-[110px] font-orbitron;
+  }
+  .hero-subtitle {
+    @apply text-[18px] sm:text-[20px] md:text-[24px] lg:text-[32px] xl:text-[36px] 2xl:text-[40px] font-orbitron;
+  }
+  .hero{
+    @apply relative;
+  }
+  .spinner {
+    top: 20%;
+    left: calc(50% - 15px);
+    @apply absolute
+  }
+  .solid-fa-border{
+    --fa-border-color: "black";
+  }
+}
