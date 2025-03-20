@@ -41,7 +41,7 @@ function annotate(sentences: string[], annotationChar: string): string {
  * @param context The context or document to reference.
  * @param response The response to the request.
  * @param request The request or question that was used to produce the response.
- * @returns 
+ * @returns The Halloumi prompt string.
  */
 export function createHalloumiPrompt(
     context: string,
@@ -58,5 +58,21 @@ export function createHalloumiPrompt(
     const annotatedResponse = `<|response|>${annotatedResponseSentences}<end||response>`;
 
     const prompt = `${annotatedContext}${annotatedRequest}${annotatedResponse}`;
+    return prompt;
+}
+
+/**
+ * Creates a Halloumi prompt from a given context and response.
+ * @param context The context or document to reference.
+ * @param response The response to the request.
+ * @returns The Halloumi Classifier prompt string.
+ */
+export function createHalloumiClassifierPrompt(
+    context: string,
+    response: string): string {
+    const annotatedContext = `<context>\n${context.trim()}\n</context>`;
+    const annotatedResponse = `<claims>\n${response.trim()}\n</claims>`;
+
+    const prompt = `${annotatedContext}\n\n${annotatedResponse}`;
     return prompt;
 }
