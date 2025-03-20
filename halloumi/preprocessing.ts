@@ -17,34 +17,46 @@ function splitIntoSentences(text: string): string[] {
     return sentences.filter(sentence => sentence.length > 0);
 }
 
-function annotate(sentences: string[], annotation_char: string): string {
-    const annotated_sentences: string[] = [];
+/**
+ * Annotate a set of sentences with a given annotation character.
+ * @param sentences A list of sentences to annotate.
+ * @param annotationChar The character to use for annotation.
+ * @returns The annotated string with annotation characters + sentence number.
+ */
+function annotate(sentences: string[], annotationChar: string): string {
+    const annotatedSentences: string[] = [];
 
-    let counter: number = 0;
+    let sentenceNumber: number = 0;
     for (const sentence of sentences) {
-        counter++;
-        annotated_sentences.push(`<|${annotation_char}${counter}|><${sentence}><end||${annotation_char}>`);
+        sentenceNumber++;
+        const annotatedSentence = `<|${annotationChar}${sentenceNumber}|><${sentence}><end||${annotationChar}>`;
+        annotatedSentences.push(annotatedSentence);
     }
 
-    return annotated_sentences.join("");
+    return annotatedSentences.join("");
 }
 
-function createPrompt(context: string, request: string, response: string): string {
-    const context_sentences = splitIntoSentences(context);
-    const annotated_context_sentences = annotate(context_sentences, "s");
-    const annotated_context = `<|context|>${annotated_context_sentences}<end||context>`;
+/**
+ * Creates a Halloumi prompt from a given context, request and response.
+ * @param context The context or document to reference.
+ * @param response The response to the request.
+ * @param request The request or question that was used to produce the response.
+ * @returns 
+ */
+export function createHalloumiPrompt(
+    context: string,
+    response: string,
+    request: string = "Make one or more claims about information in the documents."): string {
+    const contextSentences = splitIntoSentences(context);
+    const annotatedContextSentences = annotate(contextSentences, "s");
+    const annotatedContext = `<|context|>${annotatedContextSentences}<end||context>`;
 
-    const annotated_request = `<|request|><${request.trim()}><end||request>`;
+    const annotatedRequest = `<|request|><${request.trim()}><end||request>`;
 
-    const response_sentences = splitIntoSentences(response);
-    const annotated_response_sentences = annotate(response_sentences, "r");
-    const annotated_response = `<|response|>${annotated_response_sentences}<end||response>`;
+    const responseSentences = splitIntoSentences(response);
+    const annotatedResponseSentences = annotate(responseSentences, "r");
+    const annotatedResponse = `<|response|>${annotatedResponseSentences}<end||response>`;
 
-    return `${annotated_context}${annotated_request}${annotated_response}`;
+    const prompt = `${annotatedContext}${annotatedRequest}${annotatedResponse}`;
+    return prompt;
 }
-
-const input = "It was the best of times. It was the worst of times.";
-const request = "Make one or more claims about information in the document."
-const response = "It was the okayest of times. Both best and worst at times.";
-const annotated_prompt = createPrompt(input, request, response);
-console.log(annotated_prompt);
