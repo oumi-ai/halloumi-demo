@@ -22,3 +22,23 @@ export interface VerifyClaimRequest {
     context: string;
     model?: string;
 }
+
+export interface HalloumiGenerativeRequest {
+    messages: Map<string, string>[];
+    temperature: number;
+    model: string;
+}
+
+export interface HalloumiGenerativeResponse {
+    claims: Claim[];
+    citations: { [id: string]: Citation };
+}
+
+export interface HalloumiClassifierRequest {
+    input: string;
+    model: string;
+}
+
+export interface HalloumiClassifierResponse {
+    scores: number[];
+}
