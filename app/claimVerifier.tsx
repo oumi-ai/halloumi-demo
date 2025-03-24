@@ -10,26 +10,27 @@ import { ClaimBox } from './claimBox';
 import { ContextBox } from './contextBox';
 import { Citation, Claim, VerifyClaimRequest, VerifyClaimResponse } from './types';
 
-interface ExampleTemplates {
-  key: string;
+export interface ExampleTemplates {
+  displayName: string;
   claim: string;
   context: string;
 }
 
-const demoExamples: ExampleTemplates[] = [
-  {
-    key: "Custom",
-    claim: "",
-    context: ""
-  },
-  {
-    key: "Sports Summarization",
-    claim: `Ipswich Town defeated Queens Park Rangers 3-0 in a Championship match. Grant Ward scored the first goal with a shot, followed by Luke Varney's goal after QPR keeper Alex Smithies miscued a clearance. Tom Lawrence sealed the win with a calm finish. Ipswich had several chances to score more, but QPR's defense held strong. The win lifted Ipswich to 14th place, while QPR slipped to 15th. Ipswich manager Mick McCarthy berated his team's performance, while QPR boss Ian Holloway praised his team's mental toughness and defense.`,
-    context: `Grant Ward's scuffed shot put Town ahead before Luke Varney rolled the ball into an empty net after QPR keeper Alex Smithies miscued a clearance. Cole Skuse's long-range shot fell to Tom Lawrence, who capped the scoring with a calm finish into the corner. Rangers offered little in attack, but sub Sandro headed Tjarron Cherry's corner against the post late on. Ipswich had failed to score in seven of their previous 10 Championship games, but could have had plenty more, with Christophe Berra heading wide from six yards, and Skuse firing a volley straight at Smithies. The Rs have won only once in their last six matches away from Loftus Road, and rarely looked like improving that record in Ian Holloway's second game in charge. The win lifted Mick McCarthy's Ipswich up four places to 14th and above Rangers, who slipped to 15th. Ipswich manager Mick McCarthy: "The irony was that poor old Alex Smithies cost them the second goal which set us up to win as comprehensively as we did. He then kept it from being an embarrassing scoreline, but I'll take three. "With Luke Varney and also Jonathan Douglas, I knew what I was going to get - even though I bet some people weren't thinking that when they saw the teamsheet. Luke epitomised everything what I want in this team. "We have not been bristling with confidence. I have had a couple of rotten weekends after Rotherham and Nottingham Forest. But hopefully Ipswich can be a happier place than it has been." QPR boss Ian Holloway:  "I am sure everyone will say everything hinged on the second goal, but it shouldn't have. "The goal was a calamity and after that we were awful and it could have been four or five. "Everyone will blame my keeper but I won't as my defenders should have made an angle for him. Even with my legs, I would have ran back and tried to help him. "My players need to be mentally tougher as a group. I am disappointed with how we finished today. We have got to try and be a bigger, braver and more solid team." Match ends, Ipswich Town 3, Queens Park Rangers 0.`,
-  },
-];
+export interface Model {
+  name: string;
+  displayName: string;
+  apiUrl: string;
+  apiKey: string | undefined;
+  isEmbeddingModel: boolean | undefined;
+}
 
-export default function ClaimVerifier() {
+export interface ClaimVerifierProps {
+  models: Model[];
+  examples: ExampleTemplates[];
+}
+
+export default function ClaimVerifier(props: ClaimVerifierProps) {
+  const [targetModel, setTargetModel] = useState<string>('');
   const [claimResponse, setClaimResponse] = useState<VerifyClaimResponse | null>(null);
   const [claimInput, setClaimInput] = useState('');
   const [claimContext, setClaimContext] = useState('');
@@ -49,9 +50,14 @@ export default function ClaimVerifier() {
     setShowErrorMessage(false);
   }
 
+  const onModelSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setTargetModel(value);
+  };
+
   const onExampleTemplateSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    const selectedTemplate = demoExamples.find((example) => example.key === value);
+    const selectedTemplate = props.examples.find((example) => example.displayName === value);
     if (selectedTemplate !== undefined) {
       setSelectedTemplate(selectedTemplate);
     }
@@ -74,6 +80,7 @@ export default function ClaimVerifier() {
   const verifyClaims = (input: string, context: string) => {
     const apiEndpoint = 'https://api.oumi.ai/verifyClaims';
     const data: VerifyClaimRequest = {
+      model: targetModel,
       input: input,
       context: context,
     };
@@ -154,16 +161,29 @@ export default function ClaimVerifier() {
           </Popover>
         </div>
         <div className=" lg:justify-items-end">
-          <div className="">
+          <div className="flex">
+            <Select
+              className="w-[200px]"
+              label="Choose a model"
+              isDisabled={!editView || loading}
+              defaultSelectedKeys={props.models.length > 0 ? [props.models[0].name] : []}
+              onChange={onModelSelection}
+              disallowEmptySelection={true}
+            >
+              {props.models.map((model) => (
+                <SelectItem key={model.name}>{model.displayName}</SelectItem>
+              ))}
+            </Select>
             <Select
               className="w-[250px]"
               label="Try an example"
               isDisabled={!editView || loading}
+              defaultSelectedKeys={props.examples.length > 0 ? [props.examples[0].displayName] : []}
               onChange={onExampleTemplateSelection}
               disallowEmptySelection={true}
             >
-              {demoExamples.map((example) => (
-                <SelectItem key={example.key}>{example.key}</SelectItem>
+              {props.examples.map((example) => (
+                <SelectItem key={example.displayName}>{example.displayName}</SelectItem>
               ))}
             </Select>
           </div>
