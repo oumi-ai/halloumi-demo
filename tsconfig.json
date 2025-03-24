@@ -29,6 +29,7 @@
     "target": "ES2017"
   },
   "include": [
+    "/app/data.json",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",

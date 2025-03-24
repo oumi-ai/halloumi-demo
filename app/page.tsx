@@ -1,17 +1,23 @@
+import { promises as fs } from 'fs';
 import type { Metadata } from "next";
-import ClaimVerifier from "./claimVerifier";
+
+import ClaimVerifier, { ExampleTemplates, Model } from "./claimVerifier";
 
 export const metadata: Metadata = {
-  title: "Halloumi Demo",
-  description: "Demo for Halloumi claim verification model",
+  title: "HallOumi Demo",
+  description: "Demo for the HallOumi claim verification model",
 };
 
 
-export default async function Demo() {
+export default async function Page() {
+  const file = await fs.readFile(process.cwd() + '/app/data.json', 'utf8');
+  const data = JSON.parse(file);
+  const models: Model[] = data.models;
+  const examples: ExampleTemplates[] = data.examples;
   return (
     <main className="flex-1">
       <section className="w-full pt-[50px]">
-        <ClaimVerifier />
+        <ClaimVerifier models={models} examples={examples} />
       </section>
     </main>
   )
