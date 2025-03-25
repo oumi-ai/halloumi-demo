@@ -1,4 +1,17 @@
 
+/**
+ * Represents a prompt with appropriate metadata
+ */
+export interface HalloumiGenerativePrompt {
+    prompt: string;
+    contextOffsets: Map<number, StringOffsetWindow>;
+    responseOffsets: Map<number, StringOffsetWindow>;
+}
+
+export interface StringOffsetWindow {
+    startOffset: number;
+    endOffset: number;
+}
 
 /**
  * Splits a given text into sentences using sentence-splitter.
@@ -36,29 +49,53 @@ function annotate(sentences: string[], annotationChar: string): string {
     return annotatedSentences.join("");
 }
 
+function getOffsets(originalString: string, sentences: string[]): Map<number, StringOffsetWindow> {
+    const offsets: Map<number, StringOffsetWindow> = new Map();
+    let stringProgressPointer: number = 0;
+    let sentenceId: number = 1;
+    for (const sentence of sentences) {
+        const stringToSearch = originalString.slice(stringProgressPointer);
+        const startOffset = stringToSearch.indexOf(sentence) + stringProgressPointer;
+        const endOffset = startOffset + sentence.length;
+        stringProgressPointer = endOffset;
+        offsets.set(sentenceId,
+            { startOffset: startOffset, endOffset: endOffset });
+        sentenceId++;
+    }
+    return offsets;
+}
+
 /**
  * Creates a Halloumi prompt from a given context, request and response.
  * @param context The context or document to reference.
  * @param response The response to the request.
  * @param request The request or question that was used to produce the response.
- * @returns The Halloumi prompt string.
+ * @returns The Halloumi prompt.
  */
 export function createHalloumiPrompt(
     context: string,
     response: string,
-    request: string = "Make one or more claims about information in the documents."): string {
+    request: string = "Make one or more claims about information in the documents."): HalloumiGenerativePrompt {
     const contextSentences = splitIntoSentences(context);
+    const contextOffsets: Map<number, StringOffsetWindow> = getOffsets(context, contextSentences)
     const annotatedContextSentences = annotate(contextSentences, "s");
     const annotatedContext = `<|context|>${annotatedContextSentences}<end||context>`;
 
     const annotatedRequest = `<|request|><${request.trim()}><end||request>`;
 
     const responseSentences = splitIntoSentences(response);
+    const responseOffsets: Map<number, StringOffsetWindow> = getOffsets(response, responseSentences)
     const annotatedResponseSentences = annotate(responseSentences, "r");
     const annotatedResponse = `<|response|>${annotatedResponseSentences}<end||response>`;
 
     const prompt = `${annotatedContext}${annotatedRequest}${annotatedResponse}`;
-    return prompt;
+    const halloumiPrompt: HalloumiGenerativePrompt = {
+        prompt: prompt,
+        contextOffsets: contextOffsets,
+        responseOffsets: responseOffsets
+    };
+
+    return halloumiPrompt;
 }
 
 /**
