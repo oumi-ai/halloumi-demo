@@ -1,35 +1,36 @@
 
-import { Citation, Claim, VerifyClaimRequest, VerifyClaimResponse, HalloumiClassifierResponse } from '../app/types';
+import { Citation, Claim, HalloumiClassifierResponse, Model, VerifyClaimResponse } from '../app/types';
 
-import { createHalloumiClassifierPrompts, createHalloumiPrompt, HalloumiGenerativePrompt, StringOffsetWindow, HalloumiClassifierPrompt } from './preprocessing';
+import { createHalloumiClassifierPrompts, HalloumiClassifierPrompt, HalloumiGenerativePrompt, StringOffsetWindow } from './preprocessing';
 
-import { getClaimsFromResponse, GenerativeClaim, getTokenProbabilitiesFromLogits, OpenAILogProb, getClassifierProbabilitiesFromLogits } from './postprocessing';
+import { GenerativeClaim, getClaimsFromResponse, getClassifierProbabilitiesFromLogits, getTokenProbabilitiesFromLogits, OpenAILogProb } from './postprocessing';
 
 /**
  * Gets all claims from a response.
  * @param response A string containing all claims and their information.
  * @returns A list of claim objects.
  */
-export async function halloumiGenerativeAPI(context: string, claims: string): Promise<GenerativeClaim[]> {
-    const prompt = createHalloumiPrompt(context, claims);
-    const apiEndpoint = 'https://api.oumi.ai/chat/completions';
+async function halloumiGenerativeAPI(model: Model, prompt: HalloumiGenerativePrompt): Promise<GenerativeClaim[]> {
 
     const data = {
-      messages: [{ "role": "user", "content": prompt.prompt }],
-      temperature: 0.0,
-      model: 'halloumi',
-      logprobs: true,
-      top_logprobs: 3
+        messages: [{ "role": "user", "content": prompt.prompt }],
+        temperature: 0.0,
+        model: model.name,
+        logprobs: true,
+        top_logprobs: 3
     };
-
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
+    const headers: { [key: string]: string } = {
         'Content-Type': 'application/json',
         'accept': 'application/json',
-        'Authorization': 'BEARER bd5784a355bbfd9146c555a70f00accb'
-      },
-      body: JSON.stringify(data),
+    };
+    if (model.apiKey) {
+        headers['Authorization'] = `BEARER ${model.apiKey}`;
+    }
+
+    const response = await fetch(model.apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(data),
     });
 
     const jsonData = await response.json();
@@ -37,15 +38,15 @@ export async function halloumiGenerativeAPI(context: string, claims: string): Pr
     const logits = jsonData.choices[0].logprobs.content as OpenAILogProb[];
     const tokenProbabilities = getTokenProbabilitiesFromLogits(logits, tokenChoices);
     const parsedResponse: GenerativeClaim[] = getClaimsFromResponse(jsonData.choices[0].message.content);
-    
+
     if (parsedResponse.length != tokenProbabilities.length) {
         throw new Error("Token probabilities and claims do not match.");
     }
 
     for (let i = 0; i < parsedResponse.length; i++) {
-        parsedResponse[i].probabilties = tokenProbabilities[i];
+        parsedResponse[i].probabilities = tokenProbabilities[i];
     }
-    
+
     return parsedResponse;
 }
 
@@ -57,24 +58,24 @@ export async function halloumiClassifierAPI(context: string, claims: string): Pr
         const prompt = classifierPrompts.prompts[i];
         const apiEndpoint = 'https://api.oumi.ai/embeddings';
         const data = {
-          input: prompt,
-          model: 'halloumi-classifier',
+            input: prompt,
+            model: 'halloumi-classifier',
         };
 
         const response = await fetch(apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'accept': 'application/json',
-            'Authorization': 'BEARER bd5784a355bbfd9146c555a70f00accb'
-          },
-          body: JSON.stringify(data),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+                'Authorization': 'BEARER bd5784a355bbfd9146c555a70f00accb'
+            },
+            body: JSON.stringify(data),
         });
 
         const jsonData = await response.json();
         const embedding = jsonData.data[0].embedding;
         const probs = getClassifierProbabilitiesFromLogits(embedding);
-        const offset = classifierPrompts.responseOffsets.get(i+1)!;
+        const offset = classifierPrompts.responseOffsets.get(i + 1)!;
         // 0-th index is the supported class.
         // 1-th index is the unsupported class.
         responseClaims.push({
@@ -117,13 +118,13 @@ export function convertGenerativesClaimToVerifyClaimResponse(generativeClaims: G
         }
 
         const claimResponseWindow: StringOffsetWindow = prompt.responseOffsets.get(claimId)!;
-        const score: number = generativeClaim.probabilties.get("supported")!;
+        const score: number = generativeClaim.probabilities.get("supported")!;
         const claim: Claim = {
-          startOffset: claimResponseWindow.startOffset,
-          endOffset: claimResponseWindow.endOffset,
-          citationIds: citationIds,
-          score: score,
-          rationale: generativeClaim.explanation
+            startOffset: claimResponseWindow.startOffset,
+            endOffset: claimResponseWindow.endOffset,
+            citationIds: citationIds,
+            score: score,
+            rationale: generativeClaim.explanation
         };
         claims.push(claim);
     }
@@ -134,4 +135,10 @@ export function convertGenerativesClaimToVerifyClaimResponse(generativeClaims: G
     };
 
     return response;
+}
+
+export async function getVerifyClaimResponse(model: Model, prompt: HalloumiGenerativePrompt): Promise<VerifyClaimResponse> {
+    return halloumiGenerativeAPI(model, prompt).then((claims) => {
+        return convertGenerativesClaimToVerifyClaimResponse(claims, prompt);
+    });
 }

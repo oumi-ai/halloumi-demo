@@ -9,7 +9,7 @@ export interface GenerativeClaim {
     citations: number[];
     explanation: string;
     supported: boolean;
-    probabilties: Map<string, number>;
+    probabilities: Map<string, number>;
 }
 
 export interface OpenAITokenLogProb {
@@ -115,7 +115,7 @@ function getClaimFromSegment(segment: string): GenerativeClaim {
             label_index = i;
         }
     }
-    
+
     const citations = getClaimCitationsFromSubsegment(claim_segments[citation_index]);
     const explanation = claim_segments[explanation_index];
     const supported = getSupportStatusFromSubsegment(claim_segments[label_index]);
@@ -127,7 +127,7 @@ function getClaimFromSegment(segment: string): GenerativeClaim {
         citations: citations,
         explanation: explanation,
         supported: supported,
-        probabilties: new Map()
+        probabilities: new Map()
     }
 
     return claim;
@@ -140,7 +140,7 @@ function getClaimFromSegment(segment: string): GenerativeClaim {
  */
 export function getClaimsFromResponse(response: string): GenerativeClaim[] {
     // Example response: <|r1|><There is no information about the average lifespan of a giant squid in the deep waters of the Pacific Ocean in the provided document.><|subclaims|><The document contains information about the average lifespan of a giant squid.><The information about giant squid lifespan is related to the Pacific Ocean.><end||subclaims><|cite|><|s1 to s49|><end||cite><|explain|><Upon reviewing the entire document, there is no mention of giant squid or any related topic, including their average lifespan or the Pacific Ocean. The document is focused on international relations, diplomacy, and conflict resolution.><end||explain><|supported|><end||r><|r2|><The document is focused on international relations, diplomacy, and conflict resolution, and does not mention giant squid or any related topic.><|subclaims|><The document is focused on international relations, diplomacy, and conflict resolution.><The document does not mention giant squid or any related topic.><end||subclaims><|cite|><|s1|,|s2|,|s3|,|s4|><end||cite><|explain|><The first four sentences clearly establish the document's focus on international relations, diplomacy, and conflict resolution, and there is no mention of giant squid or any related topic throughout the document.><end||explain><|supported|><end||r><|r3|><The document mentions cats.><|subclaims|><The document makes some mention of cats.><end||subclaims><|cite|><None><end||cite><|explain|><There is no mention of cats anywhere in the document.><end||explain><|unsupported|><end||r>
-    
+
     let segments: string[] = response.split("<end||r>");
     const claims: GenerativeClaim[] = [];
 
@@ -164,14 +164,14 @@ function softmax(logits: number[]): number[] {
     const softmaxes: number[] = [];
     const exp_values: number[] = [];
     let total: number = 0;
-    for(let i = 0; i < logits.length; i++){
+    for (let i = 0; i < logits.length; i++) {
         const exponential = exp(logits[i]);
         total += exponential;
         exp_values.push(exponential);
     }
 
-    for(let i = 0; i < exp_values.length; i++){
-        softmaxes.push(exp_values[i]/total)
+    for (let i = 0; i < exp_values.length; i++) {
+        softmaxes.push(exp_values[i] / total)
     }
     return softmaxes;
 }

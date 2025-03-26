@@ -1,3 +1,17 @@
+export interface ExampleTemplates {
+    displayName: string;
+    claim: string;
+    context: string;
+}
+
+export interface Model {
+    name: string;
+    displayName: string;
+    apiUrl: string;
+    apiKey: string | undefined;
+    isEmbeddingModel: boolean | undefined;
+}
+
 export interface Citation {
     startOffset: number;
     endOffset: number;
