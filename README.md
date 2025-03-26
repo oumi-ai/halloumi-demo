@@ -60,5 +60,5 @@ model.
 ### Host the Generative HallOumi model
 ```bash
 pip install sglang
-python3 -m sglang.launch_server --model-path oumi-ai/Hall-Oumi-8B --port 8000 --dtype auto --mem-fraction-static 0.9 --trust-remote-code --is-embedding"
+python3 -m sglang.launch_server --model-path oumi-ai/Hall-Oumi-8B --port 8000 --dtype auto --mem-fraction-static 0.9 --trust-remote-code
 ```
