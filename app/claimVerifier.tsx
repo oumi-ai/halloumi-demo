@@ -5,25 +5,12 @@ import { SpinButton } from "@/components/spinButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@nextui-org/popover";
 import { Select, SelectItem } from "@nextui-org/select";
 import React, { useState } from 'react';
+import { getVerifyClaimResponse } from '../halloumi/api';
+import { createHalloumiPrompt } from '../halloumi/preprocessing';
 import { AnalysisBox } from './analysisBox';
 import { ClaimBox } from './claimBox';
 import { ContextBox } from './contextBox';
-import { Citation, Claim, VerifyClaimRequest, VerifyClaimResponse } from './types';
-
-export interface ExampleTemplates {
-  displayName: string;
-  claim: string;
-  context: string;
-}
-
-export interface Model {
-  name: string;
-  displayName: string;
-  apiUrl: string;
-  apiKey: string | undefined;
-  isEmbeddingModel: boolean | undefined;
-}
-
+import { Citation, ExampleTemplates, Model, VerifyClaimResponse } from './types';
 export interface ClaimVerifierProps {
   models: Model[];
   examples: ExampleTemplates[];
@@ -78,56 +65,23 @@ export default function ClaimVerifier(props: ClaimVerifierProps) {
   }
 
   const verifyClaims = (input: string, context: string) => {
-    const apiEndpoint = 'https://api.oumi.ai/verifyClaims';
-    const data: VerifyClaimRequest = {
-      model: targetModel,
-      input: input,
-      context: context,
-    };
+    const model = props.models.find((model) => model.name === targetModel);
+    if (!model) {
+      setShowErrorMessage(true);
+      return;
+    }
     setLoading(true);
     resetState();
-    fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'accept': 'application/json',
-        'Authorization': 'BEARER bd5784a355bbfd9146c555a70f00accb'
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => {
-        return res.json().then((jsonData) => {
-          const parsedResponse: VerifyClaimResponse = {
-            claims: [],
-            citations: {}
-          };
-          jsonData.claims.forEach((claim: any) => {
-            const newClaim: Claim = {
-              startOffset: claim.start_offset,
-              endOffset: claim.end_offset,
-              citationIds: claim.citation_ids,
-              score: claim.score,
-              rationale: claim.rationale
-            };
-            parsedResponse.claims.push(newClaim);
-          });
-          jsonData.citations.forEach((citation: any) => {
-            const newCitation: Citation = {
-              startOffset: citation.start_offset,
-              endOffset: citation.end_offset,
-              id: citation.id
-            };
-            parsedResponse.citations[citation.id] = newCitation;
-          });
-          setClaimResponse(parsedResponse);
-          setLoading(false);
-          setEditView(false);
-          return parsedResponse;
-        })
-      }).catch((err) => {
-        setLoading(false);
-        setShowErrorMessage(true);
-      });
+    const prompt = createHalloumiPrompt(context, input);
+    getVerifyClaimResponse(model, prompt).then((response) => {
+      setClaimResponse(response);
+      setLoading(false);
+      setEditView(false);
+      return response;
+    }).catch((err) => {
+      setLoading(false);
+      setShowErrorMessage(true);
+    });
   };
 
   return (

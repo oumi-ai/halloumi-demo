@@ -1,7 +1,8 @@
 import { promises as fs } from 'fs';
 import type { Metadata } from "next";
 
-import ClaimVerifier, { ExampleTemplates, Model } from "./claimVerifier";
+import ClaimVerifier from "./claimVerifier";
+import type { ExampleTemplates, Model } from './types';
 
 export const metadata: Metadata = {
   title: "HallOumi Demo",
