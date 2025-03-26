@@ -187,19 +187,20 @@ function getTokenProbabilitiesFromLogit(logit: OpenAILogProb, tokenChoices: Set<
         }
     }
 
+    // If any class tokens aren't present, set them below the smallest logit.
+    // Their true value is definitely <= the smallest logit value.
     for (const token of tokenChoices) {
         if (!tokenLogits.has(token)) {
             tokenLogits.set(token, smallestLogit - 1e-6);
         }
     }
 
+    const classTokens = Array.from(tokenLogits.keys());
     const logitValues = Array.from(tokenLogits.values());
     const softmaxValues = softmax(logitValues);
     const tokenProbabilities: Map<string, number> = new Map();
-    let i: number = 0;
-    for (const token of tokenLogits.keys()) {
-        tokenProbabilities.set(token, softmaxValues[i]);
-        i++;
+    for (let i = 0; i < classTokens.length; i++) {
+        tokenProbabilities.set(classTokens[i], softmaxValues[i]);
     }
 
     return tokenProbabilities;
