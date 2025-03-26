@@ -105,12 +105,12 @@ export function AnalysisBox(props: AnalysisBoxProps) {
                     <ul className="border rounded-md p-2">
                         <li className="border-b py-2">
                             Supported:
-                            {supportedScore > unsupportedScore ? (<span className={supportedColor}>
-                                &nbsp;<FontAwesomeIcon icon={faCheck} />
-                            </span>) : (
+                            <span className={supportedColor}>
+                                &nbsp;<FontAwesomeIcon icon={faCheck} /> ({new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 1 }).format(supportedScore)})
+                            </span>
                             <span className={unsupportedColor}>
-                                &nbsp;<FontAwesomeIcon icon={faX} />
-                            </span>)}
+                                &nbsp;<FontAwesomeIcon icon={faX} /> ({new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 1 }).format(unsupportedScore)})
+                            </span>
                         </li>
                         <li className="border-b py-2">
                             Rationale:
