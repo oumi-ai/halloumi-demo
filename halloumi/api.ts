@@ -1,10 +1,9 @@
 
 import { Citation, Claim, HalloumiClassifierResponse, Model, VerifyClaimResponse } from '../app/types';
 
-import { createHalloumiClassifierPrompts, HalloumiClassifierPrompt, HalloumiGenerativePrompt, StringOffsetWindow } from './preprocessing';
+import { createHalloumiClassifierPrompts, createHalloumiPrompt, HalloumiClassifierPrompt, HalloumiGenerativePrompt, StringOffsetWindow } from './preprocessing';
 
 import { GenerativeClaim, getClaimsFromResponse, getClassifierProbabilitiesFromLogits, getTokenProbabilitiesFromLogits, OpenAILogProb } from './postprocessing';
-
 /**
  * Gets all claims from a response.
  * @param response A string containing all claims and their information.
@@ -50,35 +49,36 @@ async function halloumiGenerativeAPI(model: Model, prompt: HalloumiGenerativePro
     return parsedResponse;
 }
 
-export async function halloumiClassifierAPI(context: string, claims: string): Promise<HalloumiClassifierResponse> {
+export async function halloumiClassifierAPI(model: Model, context: string, claims: string): Promise<HalloumiClassifierResponse> {
     const classifierPrompts: HalloumiClassifierPrompt = createHalloumiClassifierPrompts(context, claims);
-    const responseClaims: Claim[] = [];
+    const headers: { [key: string]: string } = {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+    };
+    if (model.apiKey) {
+        headers['Authorization'] = `BEARER ${model.apiKey}`;
+    }
+    const data = {
+        input: classifierPrompts.prompts,
+        model: model.name,
+    };
 
+    const response = await fetch(model.apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(data),
+    });
+    const jsonData = await response.json();
+    const output: HalloumiClassifierResponse = {
+        claims: []
+    };
     for (let i = 0; i < classifierPrompts.prompts.length; i++) {
-        const prompt = classifierPrompts.prompts[i];
-        const apiEndpoint = 'https://api.oumi.ai/embeddings';
-        const data = {
-            input: prompt,
-            model: 'halloumi-classifier',
-        };
-
-        const response = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'accept': 'application/json',
-                'Authorization': 'BEARER bd5784a355bbfd9146c555a70f00accb'
-            },
-            body: JSON.stringify(data),
-        });
-
-        const jsonData = await response.json();
-        const embedding = jsonData.data[0].embedding;
+        const embedding = jsonData.data[i].embedding;
         const probs = getClassifierProbabilitiesFromLogits(embedding);
         const offset = classifierPrompts.responseOffsets.get(i + 1)!;
         // 0-th index is the supported class.
         // 1-th index is the unsupported class.
-        responseClaims.push({
+        output.claims.push({
             startOffset: offset.startOffset,
             endOffset: offset.endOffset,
             citationIds: [],
@@ -87,10 +87,7 @@ export async function halloumiClassifierAPI(context: string, claims: string): Pr
         });
     }
 
-    const response: HalloumiClassifierResponse = {
-        claims: responseClaims
-    };
-    return response;
+    return output;
 }
 
 export function convertGenerativesClaimToVerifyClaimResponse(generativeClaims: GenerativeClaim[], prompt: HalloumiGenerativePrompt): VerifyClaimResponse {
@@ -137,7 +134,17 @@ export function convertGenerativesClaimToVerifyClaimResponse(generativeClaims: G
     return response;
 }
 
-export async function getVerifyClaimResponse(model: Model, prompt: HalloumiGenerativePrompt): Promise<VerifyClaimResponse> {
+export async function getVerifyClaimResponse(model: Model, context: string, claims: string): Promise<VerifyClaimResponse> {
+    if (model.isEmbeddingModel) {
+        return halloumiClassifierAPI(model, context, claims).then((response) => {
+            const parsedResponse: VerifyClaimResponse = {
+                claims: response.claims,
+                citations: {}
+            };
+            return parsedResponse;
+        });
+    }
+    const prompt = createHalloumiPrompt(context, claims);
     return halloumiGenerativeAPI(model, prompt).then((claims) => {
         return convertGenerativesClaimToVerifyClaimResponse(claims, prompt);
     });

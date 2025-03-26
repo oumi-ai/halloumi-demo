@@ -6,7 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@nextui-org/popover";
 import { Select, SelectItem } from "@nextui-org/select";
 import React, { useState } from 'react';
 import { getVerifyClaimResponse } from '../halloumi/api';
-import { createHalloumiPrompt } from '../halloumi/preprocessing';
 import { AnalysisBox } from './analysisBox';
 import { ClaimBox } from './claimBox';
 import { ContextBox } from './contextBox';
@@ -17,7 +16,7 @@ export interface ClaimVerifierProps {
 }
 
 export default function ClaimVerifier(props: ClaimVerifierProps) {
-  const [targetModel, setTargetModel] = useState<string>('');
+  const [targetModel, setTargetModel] = useState<string>(props.models[0].name);
   const [claimResponse, setClaimResponse] = useState<VerifyClaimResponse | null>(null);
   const [claimInput, setClaimInput] = useState('');
   const [claimContext, setClaimContext] = useState('');
@@ -72,8 +71,7 @@ export default function ClaimVerifier(props: ClaimVerifierProps) {
     }
     setLoading(true);
     resetState();
-    const prompt = createHalloumiPrompt(context, input);
-    getVerifyClaimResponse(model, prompt).then((response) => {
+    getVerifyClaimResponse(model, context, input).then((response) => {
       setClaimResponse(response);
       setLoading(false);
       setEditView(false);
