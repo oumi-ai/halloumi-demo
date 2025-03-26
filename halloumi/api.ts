@@ -1,9 +1,9 @@
 
-import { Citation, Claim, Model, VerifyClaimResponse } from '../app/types';
+import { Citation, Claim, HalloumiClassifierResponse, Model, VerifyClaimResponse } from '../app/types';
 
-import { HalloumiGenerativePrompt, StringOffsetWindow } from './preprocessing';
+import { createHalloumiClassifierPrompts, HalloumiClassifierPrompt, HalloumiGenerativePrompt, StringOffsetWindow } from './preprocessing';
 
-import { GenerativeClaim, getClaimsFromResponse, getTokenProbabilitiesFromLogits, OpenAILogProb } from './postprocessing';
+import { GenerativeClaim, getClaimsFromResponse, getClassifierProbabilitiesFromLogits, getTokenProbabilitiesFromLogits, OpenAILogProb } from './postprocessing';
 
 /**
  * Gets all claims from a response.
@@ -50,7 +50,50 @@ async function halloumiGenerativeAPI(model: Model, prompt: HalloumiGenerativePro
     return parsedResponse;
 }
 
-function convertGenerativesClaimToVerifyClaimResponse(generativeClaims: GenerativeClaim[], prompt: HalloumiGenerativePrompt): VerifyClaimResponse {
+export async function halloumiClassifierAPI(context: string, claims: string): Promise<HalloumiClassifierResponse> {
+    const classifierPrompts: HalloumiClassifierPrompt = createHalloumiClassifierPrompts(context, claims);
+    const responseClaims: Claim[] = [];
+
+    for (let i = 0; i < classifierPrompts.prompts.length; i++) {
+        const prompt = classifierPrompts.prompts[i];
+        const apiEndpoint = 'https://api.oumi.ai/embeddings';
+        const data = {
+            input: prompt,
+            model: 'halloumi-classifier',
+        };
+
+        const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+                'Authorization': 'BEARER bd5784a355bbfd9146c555a70f00accb'
+            },
+            body: JSON.stringify(data),
+        });
+
+        const jsonData = await response.json();
+        const embedding = jsonData.data[0].embedding;
+        const probs = getClassifierProbabilitiesFromLogits(embedding);
+        const offset = classifierPrompts.responseOffsets.get(i + 1)!;
+        // 0-th index is the supported class.
+        // 1-th index is the unsupported class.
+        responseClaims.push({
+            startOffset: offset.startOffset,
+            endOffset: offset.endOffset,
+            citationIds: [],
+            score: probs[0],
+            rationale: ""
+        });
+    }
+
+    const response: HalloumiClassifierResponse = {
+        claims: responseClaims
+    };
+    return response;
+}
+
+export function convertGenerativesClaimToVerifyClaimResponse(generativeClaims: GenerativeClaim[], prompt: HalloumiGenerativePrompt): VerifyClaimResponse {
     const citations: { [id: string]: Citation } = {};
     const claims: Claim[] = [];
 

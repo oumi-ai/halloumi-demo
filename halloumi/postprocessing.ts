@@ -219,3 +219,7 @@ export function getTokenProbabilitiesFromLogits(logits: OpenAILogProb[], tokenCh
     }
     return tokenProbabilities;
 }
+
+export function getClassifierProbabilitiesFromLogits(logits: number[]): number[] {
+    return softmax(logits);
+}
