@@ -40,5 +40,5 @@ export interface HalloumiClassifierRequest {
 }
 
 export interface HalloumiClassifierResponse {
-    scores: number[];
+    claims: Claim[];
 }

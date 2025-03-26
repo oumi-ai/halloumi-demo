@@ -13,6 +13,12 @@ export interface StringOffsetWindow {
     endOffset: number;
 }
 
+export interface HalloumiClassifierPrompt {
+    prompts: string[];
+    sentences: string[];
+    responseOffsets: Map<number, StringOffsetWindow>;
+}
+
 /**
  * Splits a given text into sentences using sentence-splitter.
  * @param text The input string to split.
@@ -21,13 +27,21 @@ export interface StringOffsetWindow {
 function splitIntoSentences(text: string): string[] {
     const segmenter = new Intl.Segmenter('en', { granularity: 'sentence' });
     const segments = segmenter.segment(text);
-    const sentences: string[] = [];
 
+    const finalSentences = [];
+    let shortSentenceString = "";
     for (const { segment } of segments) {
-        sentences.push(segment.trim());
+        // Assume that a sentence is more than 8 characters.
+        if (segment.length > 8) {
+            finalSentences.push(shortSentenceString + segment);
+            shortSentenceString = "";
+        }
+        else {
+            shortSentenceString += segment
+        }
     }
 
-    return sentences.filter(sentence => sentence.length > 0);
+    return finalSentences;
 }
 
 /**
@@ -112,4 +126,30 @@ export function createHalloumiClassifierPrompt(
 
     const prompt = `${annotatedContext}\n\n${annotatedResponse}`;
     return prompt;
+}
+
+/**
+ * Creates a Halloumi prompt from a given context and response.
+ * @param context The context or document to reference.
+ * @param response The response to the request.
+ * @returns The Halloumi Classifier prompt strings.
+ */
+export function createHalloumiClassifierPrompts(
+    context: string,
+    response: string): HalloumiClassifierPrompt {
+    const responseSentences = splitIntoSentences(response);
+    const responseOffsets: Map<number, StringOffsetWindow> = getOffsets(response, responseSentences)
+    const prompts: string[] = [];
+    for (const sentence of responseSentences) {
+        const prompt = createHalloumiClassifierPrompt(context, sentence);
+        prompts.push(prompt);
+    }
+
+    const halloumiPrompt: HalloumiClassifierPrompt = {
+        prompts: prompts,
+        sentences: responseSentences,
+        responseOffsets: responseOffsets
+    };
+
+    return halloumiPrompt;
 }
