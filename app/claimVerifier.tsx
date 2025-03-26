@@ -16,7 +16,7 @@ export interface ClaimVerifierProps {
 }
 
 export default function ClaimVerifier(props: ClaimVerifierProps) {
-  const [targetModel, setTargetModel] = useState<string>(props.models[0].name);
+  const [targetModel, setTargetModel] = useState<string>('');
   const [claimResponse, setClaimResponse] = useState<VerifyClaimResponse | null>(null);
   const [claimInput, setClaimInput] = useState('');
   const [claimContext, setClaimContext] = useState('');
@@ -62,6 +62,15 @@ export default function ClaimVerifier(props: ClaimVerifierProps) {
       setVisibleCitations(claimResponse?.claims[claimIndex].citationIds.map((citationId) => claimResponse?.citations[citationId]) || []);
     }
   }
+
+  React.useEffect(() => {
+    if (props.examples.length > 0) {
+      setSelectedTemplate(props.examples[0]);
+    }
+    if (props.models.length > 0) {
+      setTargetModel(props.models[0].name);
+    }
+  }, [props.examples, props.models]);
 
   const verifyClaims = (input: string, context: string) => {
     const model = props.models.find((model) => model.name === targetModel);

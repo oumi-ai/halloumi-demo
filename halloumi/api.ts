@@ -135,6 +135,13 @@ export function convertGenerativesClaimToVerifyClaimResponse(generativeClaims: G
 }
 
 export async function getVerifyClaimResponse(model: Model, context: string, claims: string): Promise<VerifyClaimResponse> {
+    if (!context || !claims) {
+        const response: VerifyClaimResponse = {
+            claims: [],
+            citations: {}
+        };
+        return response;
+    }
     if (model.isEmbeddingModel) {
         return halloumiClassifierAPI(model, context, claims).then((response) => {
             const parsedResponse: VerifyClaimResponse = {
