@@ -13,8 +13,10 @@ RUN npm install next@latest react@latest react-dom@latest
 # Copy the rest of the application
 COPY . .
 
+RUN npm run build
+
 # Expose port 3000
 EXPOSE 3000
 
-# Run the Next.js development server
-CMD ["npm", "run", "dev"]
+# Run the Next.js production server
+CMD ["npm", "run", "start"]
