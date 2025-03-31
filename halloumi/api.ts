@@ -10,10 +10,10 @@ function sigmoid(x: number): number {
 }
 
 
-function applyPlattScaling(platt: Platt, logit: number): number {
-    logit = Math.min(Math.max(logit, 1e-6), 1 - 1e-6);
-    logit = Math.log(logit / (1 - logit));
-    return sigmoid(-1 * ((platt.a * logit) + platt.b));
+function applyPlattScaling(platt: Platt, probability: number): number {
+    probability = Math.min(Math.max(probability, 1e-6), 1 - 1e-6);
+    const log_prob = Math.log(probability / (1 - probability));
+    return sigmoid(-1 * ((platt.a * log_prob) + platt.b));
 }
 
 /**
