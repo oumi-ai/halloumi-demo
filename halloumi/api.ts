@@ -1,9 +1,21 @@
 
-import { Citation, Claim, HalloumiClassifierResponse, Model, VerifyClaimResponse } from '../app/types';
+import { Citation, Claim, HalloumiClassifierResponse, Model, Platt, VerifyClaimResponse } from '../app/types';
 
 import { createHalloumiClassifierPrompts, createHalloumiPrompt, HalloumiClassifierPrompt, HalloumiGenerativePrompt, StringOffsetWindow } from './preprocessing';
 
 import { GenerativeClaim, getClaimsFromResponse, getClassifierProbabilitiesFromLogits, getTokenProbabilitiesFromLogits, OpenAILogProb } from './postprocessing';
+
+function sigmoid(x: number): number {
+    return 1 / (1 + Math.exp(-x));
+}
+
+
+function applyPlattScaling(platt: Platt, probability: number): number {
+    probability = Math.min(Math.max(probability, 1e-6), 1 - 1e-6);
+    const log_prob = Math.log(probability / (1 - probability));
+    return sigmoid(-1 * ((platt.a * log_prob) + platt.b));
+}
+
 /**
  * Gets all claims from a response.
  * @param response A string containing all claims and their information.
@@ -43,7 +55,15 @@ async function halloumiGenerativeAPI(model: Model, prompt: HalloumiGenerativePro
     }
 
     for (let i = 0; i < parsedResponse.length; i++) {
-        parsedResponse[i].probabilities = tokenProbabilities[i];
+        const scoreMap = tokenProbabilities[i];
+        if (model.plattScaling) {
+            const platt = model.plattScaling;
+            const unsupportedScore = applyPlattScaling(platt, scoreMap.get("unsupported")!);
+            const supportedScore = 1 - unsupportedScore;
+            scoreMap.set("supported", supportedScore);
+            scoreMap.set("unsupported", unsupportedScore);
+        }
+        parsedResponse[i].probabilities = scoreMap;
     }
 
     return parsedResponse;
@@ -75,6 +95,13 @@ export async function halloumiClassifierAPI(model: Model, context: string, claim
     for (let i = 0; i < classifierPrompts.prompts.length; i++) {
         const embedding = jsonData.data[i].embedding;
         const probs = getClassifierProbabilitiesFromLogits(embedding);
+        if (model.plattScaling) {
+            const platt = model.plattScaling;
+            const unsupportedScore = applyPlattScaling(platt, probs[1]);
+            const supportedScore = 1 - unsupportedScore;
+            probs[0] = supportedScore;
+            probs[1] = unsupportedScore;
+        }
         const offset = classifierPrompts.responseOffsets.get(i + 1)!;
         // 0-th index is the supported class.
         // 1-th index is the unsupported class.
