@@ -5,6 +5,10 @@
             "name": "halloumi",
             "apiUrl": "https://api.oumi.ai/chat/completions",
             "apiKey": "bd5784a355bbfd9146c555a70f00accb",
+            "plattScaling": {
+                "a": -0.5764390035379638,
+                "b": 0.16648741572432335
+            },
             "isEmbeddingModel": false
         },
         {
