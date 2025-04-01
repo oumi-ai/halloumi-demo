@@ -1,10 +1,9 @@
 {
     "models": [
         {
-            "displayName": "🤯 Generative HallOumi",
+            "displayName": "🤯 HallOumi",
             "name": "halloumi",
             "apiUrl": "https://api.oumi.ai/chat/completions",
-            "apiKey": "bd5784a355bbfd9146c555a70f00accb",
             "plattScaling": {
                 "a": -0.5764390035379638,
                 "b": 0.16648741572432335
@@ -12,10 +11,9 @@
             "isEmbeddingModel": false
         },
         {
-            "displayName": "🚀 Classifier HallOumi",
+            "displayName": "🚀 HallOumi Classifier",
             "name": "halloumi-classifier",
             "apiUrl": "https://api.oumi.ai/embeddings",
-            "apiKey": "bd5784a355bbfd9146c555a70f00accb",
             "isEmbeddingModel": true
         }
     ],
