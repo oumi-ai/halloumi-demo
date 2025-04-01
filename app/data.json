@@ -14,7 +14,11 @@
             "displayName": "🚀 HallOumi Classifier",
             "name": "halloumi-classifier",
             "apiUrl": "https://api.oumi.ai/embeddings",
-            "isEmbeddingModel": true
+            "isEmbeddingModel": true,
+            "plattScaling": {
+                "a": -0.9468640744087437,
+                "b": -0.07379217647931409
+            }
         }
     ],
     "examples": [
