@@ -13,9 +13,9 @@ export interface Model {
     name: string;
     displayName: string;
     apiUrl: string;
-    apiKey: string | undefined;
-    isEmbeddingModel: boolean | undefined;
-    plattScaling: Platt | undefined;
+    apiKey?: string;
+    isEmbeddingModel?: boolean;
+    plattScaling?: Platt;
 }
 
 export interface Citation {
