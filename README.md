@@ -6,9 +6,9 @@ Introducing HallOumi, a state-of-the-art claim verification model, outperforming
 
 HallOumi, the hallucination detection model built with [Oumi](https://github.com/oumi-ai/oumi), is a system built specifically to enable per-sentence verification of any content (either AI or human-generated) with sentence-level citations and human-readable explanations.
 
-Try a hosted version of this demo [on our website](https://oumi.ai/halloumi)!
+Try a hosted version of this demo [on our website](https://oumi.ai/halloumi-demo)!
 
-Read more in our blog post [here](https://oumi.ai/blog)!
+Read more in our blog post [here](https://oumi.ai/blog/posts/introducing-halloumi)!
 
 # ⚡ Quickstart
 
@@ -87,7 +87,7 @@ model.
 ### Host the Generative HallOumi model
 ```bash
 pip install sglang
-python3 -m sglang.launch_server --model-path oumi-ai/Hall-Oumi-8B --port 8000 --dtype auto --mem-fraction-static 0.9 --trust-remote-code
+python3 -m sglang.launch_server --model-path oumi-ai/HallOumi-8B --port 8000 --dtype auto --mem-fraction-static 0.9 --trust-remote-code
 ```
 
 ### Host the Classifier HallOumi model
