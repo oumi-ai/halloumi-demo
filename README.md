@@ -1,4 +1,4 @@
-# 🚀 HallOumi - Build Trustworthy AI in the Age of Disinformation
+# 🚀 Introducing HallOumi - A State-of-the-Art Claim Verification Model
 
 [![Made with Oumi](https://badgen.net/badge/Made%20with/Oumi/%23085CFF?icon=https%3A%2F%2Foumi.ai%2Flogo_dark.svg)](https://github.com/oumi-ai/oumi)
 
