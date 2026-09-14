@@ -6,8 +6,6 @@ Introducing HallOumi, a state-of-the-art claim verification model, outperforming
 
 HallOumi, the hallucination detection model built with [Oumi](https://github.com/oumi-ai/oumi), is a system built specifically to enable per-sentence verification of any content (either AI or human-generated) with sentence-level citations and human-readable explanations.
 
-Try a hosted version of this demo [on our website](https://oumi.ai/halloumi-demo)!
-
 Read more in our blog post [here](https://oumi.ai/blog/posts/introducing-halloumi)!
 
 # ⚡ Quickstart
