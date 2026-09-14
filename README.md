@@ -6,11 +6,13 @@ Introducing HallOumi, a state-of-the-art claim verification model, outperforming
 
 HallOumi, the hallucination detection model built with [Oumi](https://github.com/oumi-ai/oumi), is a system built specifically to enable per-sentence verification of any content (either AI or human-generated) with sentence-level citations and human-readable explanations.
 
-Try a hosted version of this demo [on our website](https://oumi.ai/halloumi-demo)!
-
 Read more in our blog post [here](https://oumi.ai/blog/posts/introducing-halloumi)!
 
 # ⚡ Quickstart
+
+The demo does not ship with hosted models. By default it expects a self-hosted
+generative model at `localhost:8000` and classifier at `localhost:8001`; see
+[Self-host Models](#-self-host-models) below to start them or point the demo elsewhere.
 
 ## 🐳 Docker build
 
@@ -67,7 +69,7 @@ Below is a sample `data.json` assuming you've self hosted the generative model a
         {
             "displayName": "My custom hosted model",
             "name": "mymodel",
-            "apiUrl": "http://localhost:8000/chat/completions",
+            "apiUrl": "http://localhost:8000/v1/chat/completions",
             "isEmbeddingModel": false
         }
     ],

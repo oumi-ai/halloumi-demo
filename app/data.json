@@ -3,7 +3,7 @@
         {
             "displayName": "🤯 HallOumi",
             "name": "halloumi",
-            "apiUrl": "https://api.oumi.ai/chat/completions",
+            "apiUrl": "http://localhost:8000/v1/chat/completions",
             "plattScaling": {
                 "a": -0.5764390035379638,
                 "b": 0.16648741572432335
@@ -13,7 +13,7 @@
         {
             "displayName": "🚀 HallOumi Classifier",
             "name": "halloumi-classifier",
-            "apiUrl": "https://api.oumi.ai/embeddings",
+            "apiUrl": "http://localhost:8001/v1/embeddings",
             "isEmbeddingModel": true,
             "plattScaling": {
                 "a": -0.9468640744087437,
