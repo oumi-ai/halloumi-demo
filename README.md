@@ -10,6 +10,10 @@ Read more in our blog post [here](https://oumi.ai/blog/posts/introducing-halloum
 
 # ⚡ Quickstart
 
+The demo does not ship with hosted models. By default it expects a self-hosted
+generative model at `localhost:8000` and classifier at `localhost:8001`; see
+[Self-host Models](#-self-host-models) below to start them or point the demo elsewhere.
+
 ## 🐳 Docker build
 
 You can easily build and run the HallOumi demo via docker.
@@ -65,7 +69,7 @@ Below is a sample `data.json` assuming you've self hosted the generative model a
         {
             "displayName": "My custom hosted model",
             "name": "mymodel",
-            "apiUrl": "http://localhost:8000/chat/completions",
+            "apiUrl": "http://localhost:8000/v1/chat/completions",
             "isEmbeddingModel": false
         }
     ],
